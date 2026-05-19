@@ -10,7 +10,7 @@ async function registerUserController(req,res){
 
     if(!username || !email || !password){
         return res.status(400).json({
-            success: fail,
+            success: false,
             message:"Please provide all values"
         })
     }
@@ -39,7 +39,6 @@ async function registerUserController(req,res){
         {expiresIn:"1h"}
     )
 
-
     res.cookie("token",token);
 
     res.status(201).json({
@@ -50,7 +49,7 @@ async function registerUserController(req,res){
     
 
 
- }
+}
 
 async function loginController(req,res){
     const{email, password}=req.body;
