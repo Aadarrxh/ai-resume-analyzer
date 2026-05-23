@@ -1,4 +1,4 @@
-require('dotenv').config;
+require('dotenv').config();
 const userModel=require("../models/user.model");
 const bcrypt=require("bcrypt");
 const jwt=require("jsonwebtoken");
@@ -6,49 +6,57 @@ const tokenBlackListModel=require("../models/blacklist.model")
 
 
 async function registerUserController(req,res){
-    const{username,email,password}=req.body
+    try {
+        const{username,email,password}=req.body
 
-    if(!username || !email || !password){
-        return res.status(400).json({
-            success: false,
-            message:"Please provide all values"
+        if(!username || !email || !password){
+            return res.status(400).json({
+                success: false,
+                message:"Please provide all values"
+            })
+        }
+
+        const isUserExists=await userModel.findOne({
+            $or:[{username},{email}]
         })
-    }
 
-    const isUserExists=await userModel.findOne({
-        $or:[{username},{email}]
-    })
+        if(isUserExists){
+            return res.status(400).json({
+                message:"Account already Exists"
+            })
+        }
 
-    if(isUserExists){
-        return res.status(400).json({
-            message:"Account already Exists"
+        const hash=await bcrypt.hash(password, 10)
+
+        const user=await userModel.create({
+            username,
+            email,
+            password:hash
         })
+
+        const token=jwt.sign(
+            {id:user._id ,username:user.username},
+            process.env.JWT_SECRET,
+            {expiresIn:"1h"}
+        )
+
+        res.cookie("token", token, {
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production', 
+            sameSite: 'lax', 
+            maxAge: 3600000 
+        });
+
+        res.status(201).json({
+            message:"User registered succesfully",
+            userid:user._id,
+            username:user.username,
+        })
+        
+    } catch (error) {
+        console.log("🚨 REGISTRATION ERROR:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-
-    const hash=await bcrypt.hash(password, 10)
-
-    const user=await userModel.create({
-        username,
-        email,
-        password:hash
-    })
-
-    const token=jwt.sign(
-        {id:user._id ,username:user.username},
-        process.env.JWT_SECRET,
-        {expiresIn:"1h"}
-    )
-
-    res.cookie("token",token);
-
-    res.status(201).json({
-        message:"User regsitered succesfully",
-        userid:user._id,
-        username:user.username,
-    })
-    
-
-
 }
 
 async function loginController(req,res){
@@ -57,7 +65,7 @@ async function loginController(req,res){
     const user=await userModel.findOne({email});
 
     if(!user){
-        res.status(401).json({
+        return res.status(401).json({
             message:"Invalid Email or Password"
         })
     }
@@ -75,7 +83,12 @@ async function loginController(req,res){
         {expiresIn:'1h'}
     )
 
-    res.cookie("token",token);
+    res.cookie("token", token, {
+    httpOnly: true, // Prevents JavaScript from reading the cookie (security)
+    secure: process.env.NODE_ENV === 'production', // Only true if using HTTPS
+    sameSite: 'lax', // Allows cookies to be sent between different localhost ports
+    maxAge: 3600000 // 1 hour in milliseconds to match your JWT expiration
+});
 
     res.status(200).json({
         message:"✅Logged in succesfully",

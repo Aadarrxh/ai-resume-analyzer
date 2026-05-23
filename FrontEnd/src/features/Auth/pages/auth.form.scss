@@ -19,8 +19,6 @@ main{
         gap:0.5rem;
     }
 
-
-
     .input-group{
         display:flex;
         flex-direction: column;
@@ -32,6 +30,13 @@ main{
             padding-inline:1rem;
             padding-block:0.75rem;
             border-radius:0.75rem;
+            background-color: #2a2a2a;  // dark input to match theme
+            color: #ffffff;              // white typed text
+
+            &::placeholder{
+                color: #888888;
+                opacity: 1;              // Firefox needs this
+            }
         }
     }
 
@@ -40,4 +45,3 @@ main{
         text-decoration: none;
     }
 }
-
