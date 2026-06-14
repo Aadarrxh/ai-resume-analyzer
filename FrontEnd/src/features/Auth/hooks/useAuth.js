@@ -15,33 +15,81 @@ export const useAuth = () => {
         try {
             const data = await loginApi({ email, password });
             if (data?.user) setUser(data.user);
-            return true;
+            return {
+                success: true,
+                title: data?.title || "Sign In",
+                message:
+                    data?.message ||
+                    "Logged In Successful",
+                type: "success",
+                data,
+            }
         } catch (err) {
             console.error("Login failed:", err.response?.data || err.message);
-            return false;
+            return {
+                success: false,
+                title:
+                    err.response?.data?.title ||
+                    "Login Failed",
+                message:
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Something went wrong",
+                type: "error",
+            }
         } finally {
             setLoading(false);
         }
     };
 
     const handleRegister = async ({ username, email, password }) => {
-        setLoading(true);
-        try {
-            const data = await registerApi({ username, email, password });
-            console.log("Backend Response on Register:", data);
-            
-            if (data?.user) {
-                setUser(data.user);
-                return true;
-            }
-            return false;
-        } catch (err) {
-            console.error("Registration failed:", err.response?.data || err.message);
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+
+    try {
+        const data = await registerApi({
+            username,
+            email,
+            password,
+        });
+
+        console.log("REGISTER RESPONSE:", data);
+
+        if (data?.user) {
+            setUser(data.user);
+        }      
+
+        return {
+            success: true,
+            title: data?.title || "Registration",
+            message:
+                data?.message ||
+                "Registration Successful",
+            type: "success",
+            data,
+        };
+
+    } catch (err) {
+        console.error(
+            "Registration failed:",
+            err.response?.data || err.message
+        );
+
+        return {
+            success: false,
+            title:
+                err.response?.data?.title ||
+                "Registration Failed",
+            message:
+                err.response?.data?.message ||
+                err.message ||
+                "Something went wrong",
+            type: "error",
+        };
+
+    } finally {
+        setLoading(false);
+    }
+  };
 
     const handleLogout = async () => {
         setLoading(true);
