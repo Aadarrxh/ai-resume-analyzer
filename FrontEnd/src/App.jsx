@@ -43,14 +43,11 @@ function App() {
         {/* MAIN APP */}
         {preloadDone && (
           <>
-
           <AuthProvider>
             <InterviewProvider>
               <RouterProvider router={router} />
             </InterviewProvider>
           </AuthProvider>
-
-
           </>
         )}
 

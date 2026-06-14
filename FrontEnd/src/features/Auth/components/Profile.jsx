@@ -7,7 +7,7 @@ import { LiaUserGraduateSolid } from "react-icons/lia";
 import { MdOutlineTerminal } from "react-icons/md";
 import { HiDocumentReport } from "react-icons/hi";
 import Button from '../../ui/components/buttons/Button';
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth';
 
 const acems = [
   {
@@ -34,7 +34,8 @@ const tech = [
 ]
 
 const Profile = () => {
-  //const user = useAuth();
+
+  const { user } = useAuth();
 
   return (
     <section>
@@ -47,7 +48,7 @@ const Profile = () => {
                 </div>
                 <div className="info-header">
                   <h1>
-                    {'Alex Morgan'}
+                    {user?.username || 'Alex Morgan'}
                   </h1>
                   <h2>
                     Senior Software Developer
@@ -59,7 +60,7 @@ const Profile = () => {
                     </div>
                     <div className="flex-info">
                       <MdOutlineEmail />
-                      <p>alexstdio564@gmail.com</p>
+                      <p>{user?.email || 'alexstdio564@gmail.com'}</p>
                     </div>
                   </div>
                 </div>
