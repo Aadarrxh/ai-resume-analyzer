@@ -1,0 +1,393 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+// ─── Token System ────────────────────────────────────────────────────────────
+$bg-page:       #f0f0f5;
+$bg-white:      #ffffff;
+$bg-today:      #c7c2f0;   // soft violet — "today" highlight
+$border-grid:   #d0d0d8;
+$border-outer:  #222;
+
+$text-header:   #111;
+$text-day-num:  #222;
+$text-muted:    #b0b0bb;
+$text-label:    #555;
+$text-white:    #ffffff;
+$text-nav:      #777;
+
+// Event / Priority palette
+$color-black:   #111111;   // System Audit style (dark)
+$color-violet:  #9b8ff5;   // today bg
+$color-coral:   #f4a09a;   // Protocol Update / low priority
+$color-blue:    #7ab8f5;   // start day
+$color-green:   #6dd4b0;   // end day
+$color-gold:    #f5c96d;   // milestone
+$color-pink:    #f57ab8;   // blocker
+$color-gray:    #aab0bc;   // default / no priority
+
+// Priority config (shown in modal & legend)
+$priorities: (
+  'start'     : $color-blue,
+  'end'       : $color-green,
+  'milestone' : $color-gold,
+  'high'      : $color-pink,
+  'medium'    : $color-violet,
+  'low'       : $color-coral,
+  'default'   : $color-black,
+);
+
+// ─── Base ────────────────────────────────────────────────────────────────────
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: $bg-page;
+}
+
+// ─── Wrapper ─────────────────────────────────────────────────────────────────
+.roadmap-wrapper {
+  margin-top: 2rem;
+  padding: 32px 28px;
+  min-height: 100vh;
+  background: $bg-page;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+.roadmap-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+
+  h1 {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    color: $text-header;
+    text-transform: uppercase;
+    max-width: 340px;
+  }
+
+  .nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 4px;
+
+    button {
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: $text-nav;
+      cursor: pointer;
+      padding: 2px 0;
+      text-transform: uppercase;
+      transition: color 0.15s;
+
+      &:hover { color: $text-header; }
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 12px;
+      background: $border-grid;
+    }
+
+    .month-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: $text-label;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      min-width: 90px;
+      text-align: center;
+    }
+  }
+}
+
+// ─── Legend ──────────────────────────────────────────────────────────────────
+.roadmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: $text-label;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ─── Calendar Shell ──────────────────────────────────────────────────────────
+.calendar-shell {
+  background: $bg-white;
+  border: 2px solid $border-outer;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.08);
+}
+
+// ─── Day-of-week header ──────────────────────────────────────────────────────
+.cal-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1.5px solid $border-outer;
+
+  .cal-head-cell {
+    padding: 10px 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: $text-label;
+    border-right: 1px solid $border-grid;
+
+    &:last-child { border-right: none; }
+  }
+}
+
+// ─── Calendar Grid ───────────────────────────────────────────────────────────
+.cal-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-cell {
+  min-height: 88px;
+  border-right: 1px solid $border-grid;
+  border-bottom: 1px solid $border-grid;
+  padding: 6px 7px;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+
+  &:nth-child(7n) { border-right: none; }
+
+  // Remove bottom border on last row cells
+  &:nth-last-child(-n+7) { border-bottom: none; }
+
+  &:hover:not(.cal-cell--outside) {
+    background: rgba($bg-today, 0.18);
+  }
+
+  &--outside {
+    cursor: default;
+    .cal-cell-num { color: $text-muted; }
+  }
+
+  &--today {
+    background: $bg-today;
+    .cal-cell-num { color: $text-white; font-weight: 800; }
+  }
+
+  .cal-cell-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: $text-day-num;
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+
+  .today-pill {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: $text-header;
+    color: $text-white;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-top: 3px;
+  }
+}
+
+// ─── Event Tags ──────────────────────────────────────────────────────────────
+.cal-events {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.event-tag {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-white;
+  padding: 2px 5px;
+  border-radius: 2px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+
+  // Dynamic priority colors via data attribute
+  &[data-priority="start"]     { background: $color-blue; }
+  &[data-priority="end"]       { background: $color-green; }
+  &[data-priority="milestone"] { background: $color-gold; color: #5a3a00; }
+  &[data-priority="high"]      { background: $color-pink; }
+  &[data-priority="medium"]    { background: $color-violet; }
+  &[data-priority="low"]       { background: $color-coral; }
+  &[data-priority="default"]   { background: $color-black; }
+}
+
+// ─── Modal Overlay ───────────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.12s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  background: $bg-white;
+  border: 2px solid $border-outer;
+  border-radius: 4px;
+  padding: 24px;
+  width: 340px;
+  max-width: 92vw;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.12);
+  animation: slideUp 0.14s ease;
+
+  h2 {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $text-header;
+    margin-bottom: 16px;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal-field {
+  margin-bottom: 14px;
+
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: $text-label;
+    margin-bottom: 5px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    border: 1.5px solid $border-grid;
+    border-radius: 3px;
+    padding: 7px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: $text-header;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus { border-color: $color-violet; }
+  }
+}
+
+.priority-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.priority-btn {
+  border: 2px solid transparent;
+  border-radius: 3px;
+  padding: 5px 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-white;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:hover { transform: translateY(-1px); }
+
+  &--selected {
+    border-color: $text-header;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+  }
+
+  &[data-p="start"]     { background: $color-blue;   }
+  &[data-p="end"]       { background: $color-green;  }
+  &[data-p="milestone"] { background: $color-gold;   color: #5a3a00; }
+  &[data-p="high"]      { background: $color-pink;   }
+  &[data-p="medium"]    { background: $color-violet; }
+  &[data-p="low"]       { background: $color-coral;  }
+  &[data-p="default"]   { background: $color-black;  }
+  &[data-p="clear"]     { background: #e0e0e8; color: $text-label; }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+
+  button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: opacity 0.15s;
+
+    &:hover { opacity: 0.82; }
+  }
+
+  .btn-save {
+    background: $text-header;
+    color: $text-white;
+    border-color: $text-header;
+  }
+
+  .btn-cancel {
+    background: $bg-white;
+    color: $text-label;
+    border-color: $border-grid;
+  }
+}

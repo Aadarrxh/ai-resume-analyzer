@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import "./auth.form.scss";
+import "./styles/auth.form.scss";
+import useAppNavigate from "../../ui/hooks/navigator";
+import { useNotification } from "../../ui/context/Notification.context"
+import Button from "../../ui/components/buttons/Button";
 
 const Register = () => {
-    const navigate = useNavigate();
+    const goTo = useAppNavigate();
     const { loading, handleRegister } = useAuth();
 
     // Keep the states so your inputs don't feel broken if typed into,
@@ -12,6 +15,8 @@ const Register = () => {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
+    const {addNotification} = useNotification();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -33,8 +38,20 @@ const Register = () => {
             rawValues: payload
         });
 
-        const ok = await handleRegister(payload);
-        if (ok) navigate("/");
+        const res = await handleRegister(payload);
+
+        if(res.success){
+            setUsername("");
+            setEmail("");
+            setPassword("");
+            goTo("/app");
+        }
+
+        addNotification({
+            title:res.title || "SYSTEM UPDATE",
+            message:res.message || "Unwanted Error",
+            type:res.type || "undefined",
+        })
     };
 
     if (loading) {
@@ -43,8 +60,8 @@ const Register = () => {
 
     return (
         <main>
-            <div className="form-container">
-                <h1>Register</h1>
+            <div className="form-container offset-black">
+                <h1>Initialize Your  <br /> Account</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
                         <label htmlFor="reg-username">Username</label>
@@ -85,11 +102,11 @@ const Register = () => {
                         />
                     </div>
 
-                    <button type="submit" className="button primary-button">Register</button>
+                    <Button text="Create Account" color="#fff" bg="#000" />
                 </form>
 
                 <p>
-                    Already have an Account? <Link to={"/login"}>Login</Link>
+                    Already have an Account? <Link to={"/login"}>Sign In</Link>
                 </p>
             </div>
         </main>

@@ -1,0 +1,49 @@
+.preloader {
+  position: fixed;
+  inset: 0;
+  background: #0a0a0a;
+  z-index: 9999;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+}
+
+.loader-text {
+  display: flex;
+  gap: 0.05em;
+
+  span {
+    font-size: clamp(3rem, 10vw, 8rem);
+    font-weight: 900;
+    color: white;
+    display: block;
+    transform: translateY(120%);
+    overflow: hidden;
+  }
+
+  span:nth-child(2){
+    color: var(--blue);
+  }
+}
+
+.cube-box{
+    width: 60px;
+    height: 60px;
+    transform:translateX(-50%) scale(0);
+    position: absolute;
+    bottom: 20%;
+    left: 30%;
+    background-color: var(--blue);
+}
+
+
+@media (max-width: 1000px) {
+    .cube-box{
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}

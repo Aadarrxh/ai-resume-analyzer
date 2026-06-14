@@ -1,0 +1,176 @@
+nav {
+  width: 100%;
+
+  padding: 1em 2em;
+
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  z-index: 1000;
+
+  background-color: var(--black);
+
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  a {
+    text-decoration: none;
+  }
+
+  a,
+  h2,
+  p,
+  button {
+    text-transform: uppercase;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    z-index: 200;
+
+    h2{
+      cursor: pointer;
+    }
+  }
+
+  .square {
+    width: 14px;
+    height: 14px;
+
+    background-color: var(--blue);
+  }
+
+  h2 {
+    span {
+      color: var(--gray);
+    }
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+  }
+
+  .nav-links {
+    p {
+      color: var(--gray);
+      display: inline-block;
+
+      padding: 1.5em;
+
+      font-weight: 800;
+
+      font-size: 12px;
+
+      position: relative;
+
+      &::after {
+        content: "";
+
+        position: absolute;
+
+        width: 0%;
+        height: 3px;
+
+        background-color: var(--blue);
+
+        top: 80%;
+        left: 1.5em;
+
+        transition: width 0.25s ease;
+      }
+
+      &:hover::after {
+        width: calc(100% - 3em);
+      }
+    }
+  }
+
+  .nav-btns {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .hamburger {
+    display: none;
+
+    cursor: pointer;
+
+    z-index: 200;
+  }
+
+  .mobile-menu {
+    position: fixed;
+
+    inset: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    background: #050505;
+
+    display: none;
+
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 2rem;
+
+    z-index: 100;
+
+    clip-path: circle(0% at top right);
+  }
+
+  .mobile-link {
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 2rem;
+
+    font-weight: 700;
+
+    cursor: pointer;
+  }
+
+  .mobile-auth {
+    margin-top: 2rem;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 1rem;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  nav {
+    .desktop-nav {
+      display: none;
+    }
+
+    .hamburger {
+      display: block;
+    }
+
+    .nav-left{
+      h2{
+        pointer-events: none;
+      }
+    }
+  }
+}
