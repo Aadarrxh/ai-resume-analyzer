@@ -5,51 +5,85 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
 });
 
-
 const interviewReportZod = z.object({
-    matchScore: z.number().describe("A score between 0 and 100 indicating how well the candidate's profile matches the job describe"),
+    matchScore: z.number(),
     technicalQuestions: z.array(z.object({
-        question: z.string().describe("The technical question can be asked in the interview"),
-        intention: z.string().describe("The intention of interviewer behind asking this question"),
-        answer: z.string().describe("How to answer this question, what points to cover, what approach to take etc.")
-    })).describe("Technical questions that can be asked in the interview along with their intention and how to answer them"),
+        question: z.string(),
+        intention: z.string(),
+        answer: z.string()
+    })),
     behavioralQuestions: z.array(z.object({
-        question: z.string().describe("The technical question can be asked in the interview"),
-        intention: z.string().describe("The intention of interviewer behind asking this question"),
-        answer: z.string().describe("How to answer this question, what points to cover, what approach to take etc.")
-    })).describe("Behavioral questions that can be asked in the interview along with their intention and how to answer them"),
+        question: z.string(),
+        intention: z.string(),
+        answer: z.string()
+    })),
     skillGaps: z.array(z.object({
-        skill: z.string().describe("The skill which the candidate is lacking"),
-        severity: z.enum([ "low", "medium", "high" ]).describe("The severity of this skill gap, i.e. how important is this skill for the job and how much it can impact the candidate's chances")
-    })).describe("List of skill gaps in the candidate's profile along with their severity"),
+        skill: z.string(),
+        severity: z.enum([ "low", "medium", "high" ])
+    })),
     preparationPlan: z.array(z.object({
-        day: z.number().describe("The day number in the preparation plan, starting from 1"),
-        focus: z.string().describe("The main focus of this day in the preparation plan, e.g. data structures, system design, mock interviews etc."),
-        tasks: z.array(z.string()).describe("List of tasks to be done on this day to follow the preparation plan, e.g. read a specific book or article, solve a set of problems, watch a video etc.")
-    })).describe("A day-wise preparation plan for the candidate to follow in order to prepare for the interview effectively"),
-    title: z.string().describe("The title of the job for which the interview report is generated"),
-})
+        day: z.number(),
+        focus: z.string(),
+        tasks: z.array(z.string())
+    })),
+    title: z.string(),
+});
 
-
-function cleanJSON(text) {
-    return text
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-}
-
-
-function validateShape(obj) {
-    return (
-        obj &&
-        typeof obj.matchScore === "number" &&
-        Array.isArray(obj.technicalQuestions) &&
-        Array.isArray(obj.behavioralQuestions) &&
-        Array.isArray(obj.skillGaps) &&
-        Array.isArray(obj.preparationPlan) &&
-        typeof obj.title === "string"
-    );
-}
+const nativeGeminiSchema = {
+    type: "OBJECT",
+    properties: {
+        matchScore: { type: "INTEGER", description: "Score between 0 and 100 indicating job fit." },
+        title: { type: "STRING", description: "The target job title." },
+        skillGaps: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    skill: { type: "STRING" },
+                    severity: { type: "STRING", enum: ["low", "medium", "high"] }
+                },
+                required: ["skill", "severity"]
+            }
+        },
+        technicalQuestions: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    question: { type: "STRING", description: "In-depth technical question" },
+                    intention: { type: "STRING", description: "What the interviewer is looking for" },
+                    answer: { type: "STRING", description: "Detailed guide, code points, or approach to answer" }
+                },
+                required: ["question", "intention", "answer"]
+            }
+        },
+        behavioralQuestions: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    question: { type: "STRING", description: "Behavioral core question" },
+                    intention: { type: "STRING", description: "What soft skills are being tested" },
+                    answer: { type: "STRING", description: "How to apply the STAR structure to answer" }
+                },
+                required: ["question", "intention", "answer"]
+            }
+        },
+        preparationPlan: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    day: { type: "INTEGER", description: "Day milestone number, sequential from 1 to 10" },
+                    focus: { type: "STRING", description: "Main theme of the study day" },
+                    tasks: { type: "ARRAY", items: { type: "STRING" }, description: "Specific steps to execute" }
+                },
+                required: ["day", "focus", "tasks"]
+            }
+        }
+    },
+    required: ["matchScore", "title", "skillGaps", "technicalQuestions", "behavioralQuestions", "preparationPlan"]
+};
 
 async function generateInterviewReport({
     resume,
@@ -57,43 +91,12 @@ async function generateInterviewReport({
     jobDescription
 }) {
     const prompt = `
-You are a STRICT JSON generator.
+You are an expert technical interviewer and executive talent recruiter. Your job is to output a comprehensive preparation data payload for a candidate.
 
-Return ONLY valid JSON. No markdown. No explanation.
-
-You MUST include ALL fields exactly:
-
-{
-  "matchScore": number,
-  "technicalQuestions": [
-    {
-      "question": string,
-      "intention": string,
-      "answer": string
-    }
-  ],
-  "behavioralQuestions": [
-    {
-      "question": string,
-      "intention": string,
-      "answer": string
-    }
-  ],
-  "skillGaps": [
-    {
-      "skill": string,
-      "severity": "low" | "medium" | "high"
-    }
-  ],
-  "preparationPlan": [
-    {
-      "day": number,
-      "focus": string,
-      "tasks": string[]
-    }
-  ],
-  "title": string
-}
+CRITICAL POPULATION CONSTRAINTS:
+1. "technicalQuestions": You must generate an array containing exactly 8 highly-specific questions.
+2. "behavioralQuestions": You must generate an array containing exactly 7 highly-specific questions.
+3. "preparationPlan": You must populate exactly 10 day entries inside this array (Day 1 through Day 10). Provide actionable, distinct tasks for each day.
 
 Resume:
 ${resume}
@@ -114,38 +117,23 @@ ${jobDescription}
                     parts: [{ text: prompt }]
                 }
             ],
-            generationConfig: {
-                response_mime_type: "application/json"
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: nativeGeminiSchema, 
+                maxOutputTokens: 25000, 
+                temperature: 0.6
             }
         });
 
-
-        const rawText =
-            response.candidates?.[0]?.content?.parts?.[0]?.text;
+        const rawText = response.text;
 
         if (!rawText) {
-            console.error("FULL RESPONSE:", JSON.stringify(response, null, 2));
-            throw new Error("Empty response from Gemini");
+            throw new Error("No payload returned from Gemini engine");
         }
 
-        const cleaned = cleanJSON(rawText);
-
-        let parsed;
-
-        try {
-            parsed = JSON.parse(cleaned);
-        } catch (err) {
-            console.error("RAW MODEL OUTPUT:\n", rawText);
-            throw new Error("Invalid JSON returned by Gemini");
-        }
-
-        if (!validateShape(parsed)) {
-            console.error("INVALID STRUCTURE:\n", parsed);
-            throw new Error("Model returned incomplete structure");
-        }
-
+        const parsed = JSON.parse(rawText);
+        
         const result = interviewReportZod.parse(parsed);
-
         return result;
 
     } catch (error) {
