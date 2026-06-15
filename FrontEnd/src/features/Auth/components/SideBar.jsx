@@ -47,7 +47,8 @@ const SideBar = () => {
       }`}
 
       style={{
-          minHeight: activeTab === "dashboard" ? "205svh" : "125svh",
+          minHeight: activeTab === "dashboard" ? "205svh" : activeTab === "edit" ? "180svh"
+          :"125svh",
       }}
     >
     <aside className="side-bar">

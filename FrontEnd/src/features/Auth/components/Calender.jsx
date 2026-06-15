@@ -175,7 +175,7 @@ export default function RoadmapCalendar() {
   }, [modal]);
 
   return (
-    <div className="roadmap-wrapper">
+    <div className="roadmap-wrapper offset-black">
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="roadmap-header">
         <h1>Roadmap Tracker &amp; Event Calendar</h1>
