@@ -63,15 +63,16 @@ const Home = () => {
               </div>
               <span className="badge">REQUIRED</span>
             </div>
-
-            <div className="textarea-wrap">
+            <div className="field-group">
+              <label>
+                Self Description <span>*</span>
+              </label>
               <textarea
-                placeholder="Paste the full job description here... e.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                maxLength={5000}
+                className="short-textarea"
+                placeholder="Briefly describe your experience, key skills, and years of experience..."
+                value={selfDescription}
+                onChange={(e) => setSelfDescription(e.target.value)}
               />
-              <span className="char-count">{jobDescription.length} / 5000 chars</span>
             </div>
           </section>
 
@@ -129,17 +130,19 @@ const Home = () => {
             <div className="divider">
               <span>OR</span>
             </div>
-
-            <div className="field-group">
-              <label>
-                Self Description <span>*</span>
-              </label>
+              
+             <div className="textarea-wrap">
               <textarea
-                className="short-textarea"
-                placeholder="Briefly describe your experience, key skills, and years of experience..."
-                value={selfDescription}
-                onChange={(e) => setSelfDescription(e.target.value)}
+                placeholder="Paste the full job description here... e.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                maxLength={5000}
               />
+              <span className="char-count">{jobDescription.length} / 5000 chars</span>
+                <button type="button" className="action-btn" onClick={handleGenerateReport}>
+                  <Sparkles size={16} />
+                  Generate My Interview Strategy
+               </button>
             </div>
 
             <div className="info-box">
@@ -157,10 +160,6 @@ const Home = () => {
             <span className="status-dot" />
             <p>AI-Powered Strategy Generation • Approx 30s</p>
           </div>
-          <button type="button" className="action-btn" onClick={handleGenerateReport}>
-            <Sparkles size={16} />
-            Generate My Interview Strategy
-          </button>
         </div>
       </main>
 
