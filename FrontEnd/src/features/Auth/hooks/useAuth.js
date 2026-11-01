@@ -8,12 +8,18 @@ import {
 } from "../services/auth.api";
 
 export const useAuth = () => {
+
     const { user, setUser, loading, setLoading } = useContext(AuthContext);
+
+    console.log("CONTEXT:", user);
+    console.log("AUTH CONTEXT:", AuthContext);
+
 
     const handleLogin = async ({ email, password }) => {
         setLoading(true);
         try {
             const data = await loginApi({ email, password });
+
             if (data?.user) setUser(data.user);
             return {
                 success: true,
@@ -107,6 +113,7 @@ export const useAuth = () => {
         const getAndSetUser = async () => {
             try {
                 const data = await getMeApi();
+                console.log(data);
                 if (data?.user) setUser(data.user);
             } catch (err) {
                 setUser(null);
@@ -117,6 +124,7 @@ export const useAuth = () => {
 
         getAndSetUser();
     }, [setUser, setLoading]);
+    
 
     return { user, loading, handleRegister, handleLogin, handleLogout };
 };

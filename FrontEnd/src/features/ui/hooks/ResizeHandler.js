@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 const useReloadOnResize = () => {
-  useEffect(() => {
+  /*useEffect(() => {
     let timeout;
 
     const handleResize = () => {
@@ -15,17 +15,18 @@ const useReloadOnResize = () => {
     window.addEventListener(
       "resize",
       handleResize
-    );
+    );*/
 
     return () => {
-      clearTimeout(timeout);
+      /*clearTimeout(timeout);
 
       window.removeEventListener(
         "resize",
         handleResize
-      );
+      );*/
+      null
     };
-  }, []);
+  /*}, []);*/
 };
 
 export default useReloadOnResize;

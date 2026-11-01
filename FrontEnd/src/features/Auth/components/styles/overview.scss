@@ -31,6 +31,7 @@ section{
                 display: flex;
                 flex-direction: column;
                 gap:.5rem;
+                background-color: #fff;
 
                 p{
                     color: var(--gray);
@@ -145,6 +146,7 @@ section{
                 align-items: center;
                 gap: 1rem;
                 padding: .5em 1em;
+                background-color: #fff;
                  
                 .file-img-wrapper{
                     width: 50px;
