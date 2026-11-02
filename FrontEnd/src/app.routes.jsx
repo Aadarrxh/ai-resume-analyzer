@@ -4,7 +4,7 @@ import RootLayout from "./layouts/RootLayout";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
 import Protected from "./features/auth/components/Protected";
-import Home from "./features/interview/pages/Home";
+import ResumeAnalyzer from "./features/interview/pages/ResumeAnalyzer";
 import Interview from "./features/interview/pages/Interview";
 import Landing from "./features/ui/pages/Landing";
 import DashBoard from "./features/auth/pages/Dashboard";
@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
         path: "app",
         element: (
           <Protected>
-            <Home />
+            <ResumeAnalyzer />
           </Protected>
         ),
       },

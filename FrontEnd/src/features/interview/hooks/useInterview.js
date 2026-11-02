@@ -3,9 +3,7 @@ import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context.jsx"
 import { useParams } from "react-router"
 
-
 export const useInterview = () => {
-
     const context = useContext(InterviewContext)
     const { interviewId } = useParams()
 
@@ -20,43 +18,46 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
-            setReport(response.interviewReport)
+            if (response?.interviewReport) {
+                setReport(response.interviewReport)
+            }
+            return response?.interviewReport
         } catch (error) {
-            console.log(error)
+            console.error("Error in generateReport:", error)
+            throw error
         } finally {
             setLoading(false)
         }
-
-        return response.interviewReport
     }
 
-    const getReportById = async (interviewId) => {
+    const getReportById = async (targetInterviewId) => {
         setLoading(true)
         let response = null
         try {
-            response = await getInterviewReportById(interviewId)
-            setReport(response.interviewReport)
+            response = await getInterviewReportById(targetInterviewId)
+            if (response?.interviewReport) {
+                setReport(response.interviewReport)
+            }
+            return response?.interviewReport
         } catch (error) {
-            console.log(error)
+            console.error("Error in getReportById:", error)
+            throw error
         } finally {
             setLoading(false)
         }
-        return response.interviewReport
     }
 
     const getReports = async () => {
-        setLoading(true)
         let response = null
         try {
             response = await getAllInterviewReports()
-            setReports(response.interviewReports)
+            if (response?.interviewReports) {
+                setReports(response.interviewReports)
+            }
         } catch (error) {
-            console.log(error)
-        } finally {
-            setLoading(false)
+            console.error("Error in getReports:", error)
         }
-
-        return response.interviewReports
+        return response?.interviewReports || []
     }
 
     const getResumePdf = async (interviewReportId) => {
@@ -70,9 +71,9 @@ export const useInterview = () => {
             link.setAttribute("download", `resume_${interviewReportId}.pdf`)
             document.body.appendChild(link)
             link.click()
-        }
-        catch (error) {
-            console.log(error)
+        } catch (error) {
+            console.error("Error in getResumePdf:", error)
+            throw error
         } finally {
             setLoading(false)
         }
@@ -87,5 +88,4 @@ export const useInterview = () => {
     }, [ interviewId ])
 
     return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf }
-
 }
