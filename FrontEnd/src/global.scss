@@ -15,6 +15,7 @@
   --gray: #807F80;
   --lightGray: #d9d6d6;
   --red: #AB404B;
+  --nav-height: 80px;
 
   --dur: 0.9s;
   --ease: cubic-bezier(0.83, 0, 0.17, 1);
@@ -26,7 +27,8 @@ html,
 body,
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
+  height: auto;
   font-family:"Geist",sans-serif;
   overflow-x: hidden; 
 
@@ -36,7 +38,19 @@ body,
     linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px);
 
   background-size: 50px 50px;
+}
 
+html:has([class*="pageContainer"]),
+body:has([class*="pageContainer"]),
+#root:has([class*="pageContainer"]),
+html:has([class*="interviewPage"]),
+body:has([class*="interviewPage"]),
+#root:has([class*="interviewPage"]),
+html:has(.interview-page),
+body:has(.interview-page),
+#root:has(.interview-page) {
+  background-color: #0B1020 !important;
+  background-image: none !important;
 }
 
 .light-text{
