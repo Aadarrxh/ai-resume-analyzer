@@ -63,7 +63,8 @@
   max-width: 260px;
   flex-shrink: 0;
   position: sticky;
-  top: var(--nav-height, 80px);
+  top: calc(var(--nav-height, 80px) + 16px);
+  align-self: flex-start;
   height: fit-content;
   max-height: calc(100vh - var(--nav-height, 80px));
   background-color: #111827;
@@ -749,16 +750,21 @@
 }
 
 @media (max-width: 900px) {
+  /* Keep section controls stacked under the Sections label on smaller screens.
+     Do not turn them into a full-width horizontal row. */
   .interviewLayout {
     flex-direction: column;
   }
 
   .sectionSidebar {
+    position: relative;
+    top: auto;
+    align-self: stretch;
     width: 100%;
-    min-width: 100%;
-    max-width: 100%;
+    min-width: 0;
+    max-width: none;
     height: auto;
-    position: static;
+    max-height: none;
     border-right: none;
     border-bottom: 1px solid #273449;
     padding: 1rem;
@@ -766,26 +772,30 @@
   }
 
   .sidebarNav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    width: 100%;
   }
 
   .sidebarLabel {
     width: 100%;
-    padding: 0;
+    padding: 0 0.75rem;
   }
 
   .navItem {
-    width: auto;
-    flex: 1 1 auto;
-    justify-content: center;
+    display: flex;
+    width: 100%;
+    flex: 0 0 auto;
+    justify-content: flex-start;
   }
 
   .downloadResumeBtn {
     width: 100%;
     margin-top: 0;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .mainContent {
@@ -804,9 +814,9 @@
 
   .rightPanel {
     width: 100%;
-    min-width: 100%;
+    min-width: 0;
     position: static;
-    top: 0;
+    top: auto;
     padding-top: 1.5rem;
     border-top: 1px solid #273449;
   }
