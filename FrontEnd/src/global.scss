@@ -214,3 +214,11 @@ body:has(.interview-page),
 .red-border{
   border:1px solid var(--red);
 }
+
+/* Preserve sticky positioning for the interview section sidebar.
+   Unlike overflow-x: hidden, clip does not create a vertical scroll container. */
+html:has([class*="sectionSidebar"]),
+body:has([class*="sectionSidebar"]),
+#root:has([class*="sectionSidebar"]) {
+  overflow-x: clip;
+}
