@@ -1,226 +1,310 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styles from '../style/InterviewReport.module.css'
 import { useInterview } from '../hooks/useInterview.js'
 import { useParams } from 'react-router'
 
 const NAV_ITEMS = [
-    { id: 'technical', label: 'Technical Questions' },
-    { id: 'behavioral', label: 'Behavioral Questions' },
-    { id: 'roadmap', label: 'Preparation Roadmap' },
+    {
+        id: 'technical',
+        label: 'Technical Questions',
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+            </svg>
+        )
+    },
+    {
+        id: 'behavioral',
+        label: 'Behavioral Questions',
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+        )
+    },
+    {
+        id: 'roadmap',
+        label: 'Road Map',
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+            </svg>
+        )
+    },
 ]
 
+// ── Sub-components ────────────────────────────────────────────────────────────
+
 const QuestionCard = ({ item, index }) => {
-    const [open, setOpen] = useState(false)
+    const [ open, setOpen ] = useState(false)
 
     return (
-        <article className={styles.questionCard}>
-            <button
-                type="button"
-                className={styles.questionToggle}
-                onClick={() => setOpen(value => !value)}
-                aria-expanded={open}
-            >
+        <div className={styles.questionCard}>
+            <div className={styles.questionHeader} onClick={() => setOpen(prev => !prev)}>
                 <span className={styles.questionIndex}>Q{index + 1}</span>
-                <span className={styles.questionText}>{item.question}</span>
-                <span className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`} aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <p className={styles.questionText}>{item.question}</p>
+                <span className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
                 </span>
-            </button>
+            </div>
 
             {open && (
                 <div className={styles.questionBody}>
-                    <section className={styles.answerSection}>
-                        <span className={styles.answerLabel}>Intention</span>
-                        <p className={styles.answerText}>{item.intention || 'No intention provided.'}</p>
-                    </section>
-                    <section className={styles.answerSection}>
-                        <span className={styles.answerLabel}>Model Answer</span>
-                        <p className={styles.answerText}>{item.answer || 'No model answer provided.'}</p>
-                    </section>
+                    {item.intention && (
+                        <div className={styles.questionSection}>
+                            <span className={styles.tagIntention}>Intention</span>
+                            <p className={styles.answerText}>{item.intention}</p>
+                        </div>
+                    )}
+                    {item.answer && (
+                        <div className={styles.questionSection}>
+                            <span className={styles.tagAnswer}>Model Answer</span>
+                            <p className={styles.answerText}>{item.answer}</p>
+                        </div>
+                    )}
                 </div>
             )}
-        </article>
+        </div>
     )
 }
 
-const RoadMapDay = ({ day }) => (
-    <article className={styles.roadmapDay}>
-        <div className={styles.roadmapDayHeading}>
+const RoadMapCard = ({ day }) => (
+    <div className={styles.roadmapCard}>
+        <div className={styles.roadmapHeader}>
             <span className={styles.dayBadge}>Day {day.day}</span>
             <h3 className={styles.dayFocus}>{day.focus}</h3>
         </div>
-        {Array.isArray(day.tasks) && day.tasks.length > 0 && (
-            <ul className={styles.dayTasks}>
-                {day.tasks.map((task, index) => (
-                    <li key={index}>{task}</li>
+        {day.tasks && day.tasks.length > 0 && (
+            <ul className={styles.taskList}>
+                {day.tasks.map((task, idx) => (
+                    <li key={idx} className={styles.taskItem}>
+                        <span className={styles.taskBullet} />
+                        <span>{task}</span>
+                    </li>
                 ))}
             </ul>
         )}
-    </article>
+    </div>
 )
 
+// ── Main Component ────────────────────────────────────────────────────────────
+
 const Interview = () => {
-    const [activeTab, setActiveTab] = useState('technical')
-    const { report, loading, getResumePdf } = useInterview()
+    const [ activeNav, setActiveNav ] = useState('technical')
+    const [ isDownloadingPdf, setIsDownloadingPdf ] = useState(false)
+    const { report, getReportById, loading, getResumePdf } = useInterview()
     const { interviewId } = useParams()
 
-    // The useInterview hook already loads the report for the current route.
-    // Keep the existing report visible while a resume PDF is being generated.
-    if (!report) {
+    useEffect(() => {
+        if (interviewId) {
+            getReportById(interviewId)
+        }
+    }, [ interviewId, getReportById ])
+
+    // Maintain solid dark background on document body for this route
+    useEffect(() => {
+        const prevBg = document.body.style.backgroundColor
+        const prevBgImg = document.body.style.backgroundImage
+        document.body.style.backgroundColor = '#0b0f19'
+        document.body.style.backgroundImage = 'none'
+        return () => {
+            document.body.style.backgroundColor = prevBg
+            document.body.style.backgroundImage = prevBgImg
+        }
+    }, [])
+
+    const handleDownloadResume = async () => {
+        if (!interviewId || isDownloadingPdf) return
+        try {
+            setIsDownloadingPdf(true)
+            await getResumePdf(interviewId)
+        } catch (err) {
+            console.error('Failed to download resume PDF:', err)
+        } finally {
+            setIsDownloadingPdf(false)
+        }
+    }
+
+    if (loading && !report) {
         return (
             <main className={styles.loadingScreen}>
-                <div className={styles.loadingContent}>
-                    <span className={styles.loadingDot} />
-                    <h1>{loading ? 'Loading your interview report...' : 'Preparing your interview report...'}</h1>
-                </div>
+                <h1>Loading your interview plan...</h1>
             </main>
         )
     }
 
-    const technicalQuestions = Array.isArray(report.technicalQuestions) ? report.technicalQuestions : []
-    const behavioralQuestions = Array.isArray(report.behavioralQuestions) ? report.behavioralQuestions : []
-    const preparationPlan = Array.isArray(report.preparationPlan) ? report.preparationPlan : []
-    const skillGaps = Array.isArray(report.skillGaps) ? report.skillGaps : []
-    const matchScore = Number(report.matchScore) || 0
-    const scoreTone = matchScore >= 80 ? styles.scoreHigh : matchScore >= 60 ? styles.scoreMid : styles.scoreLow
+    if (!report) {
+        return (
+            <main className={styles.loadingScreen}>
+                <h1>Report not found</h1>
+            </main>
+        )
+    }
 
-    const activeCount = activeTab === 'technical'
-        ? technicalQuestions.length
-        : activeTab === 'behavioral'
-            ? behavioralQuestions.length
-            : preparationPlan.length
+    const matchScore = report.matchScore ?? 0
+
+    const scoreRingClass =
+        matchScore >= 80 ? styles.scoreHigh :
+            matchScore >= 60 ? styles.scoreMid : styles.scoreLow
+
+    const scoreTextColorClass =
+        matchScore >= 80 ? styles.textHigh :
+            matchScore >= 60 ? styles.textMid : styles.textLow
+
+    const scoreSubtitleText =
+        matchScore >= 80 ? 'Strong match for this role' :
+            matchScore >= 60 ? 'Moderate match for this role' : 'Needs preparation for this role'
 
     return (
-        <main className={styles.interviewPage} aria-labelledby="interview-report-title">
-            <div className={styles.pageShell}>
-                <header className={styles.reportHeader}>
-                    <div className={styles.headerCopy}>
-                        <span className={styles.reportEyebrow}>Your preparation workspace</span>
-                        <h1 id="interview-report-title" className={styles.reportTitle}>
-                            {report.title || 'Interview Preparation Report'}
-                        </h1>
-                        <p className={styles.reportSubtitle}>
-                            Your questions, suggested answers and focused preparation plan in one place.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => getResumePdf(interviewId)}
-                        className={styles.downloadButton}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        Download Resume
-                    </button>
-                </header>
-
-                <section className={styles.overviewGrid} aria-label="Interview report overview">
-                    <div className={styles.scoreCard}>
-                        <div className={`${styles.scoreRing} ${scoreTone}`}>
-                            <span className={styles.scoreNumber}>{matchScore}</span>
-                            <span className={styles.scorePercent}>%</span>
-                        </div>
-                        <div className={styles.scoreCopy}>
-                            <h2>Resume match</h2>
-                            <p>Alignment with the job description</p>
-                        </div>
+        <div className={styles.interviewPage}>
+            <div className={styles.layoutContainer}>
+                {/* ── Left Sidebar (Sections + Download Resume) ── */}
+                <aside className={styles.leftSidebar}>
+                    <div className={styles.sidebarTop}>
+                        <p className={styles.sectionLabel}>Sections</p>
+                        <nav className={styles.navList}>
+                            {NAV_ITEMS.map(item => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    className={`${styles.navButton} ${activeNav === item.id ? styles.navButtonActive : ''}`}
+                                    onClick={() => setActiveNav(item.id)}
+                                >
+                                    <span className={styles.navIcon}>{item.icon}</span>
+                                    <span>{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
                     </div>
 
-                    <div className={styles.skillCard}>
-                        <div className={styles.skillCardHeading}>
-                            <div>
-                                <h2>Skill gaps to focus on</h2>
-                                <p>{skillGaps.length ? 'Prioritise these areas during preparation.' : 'No skill gaps were listed in this report.'}</p>
-                            </div>
-                            <span className={styles.skillCount}>{skillGaps.length}</span>
-                        </div>
-                        {skillGaps.length > 0 && (
-                            <div className={styles.skillChips}>
-                                {skillGaps.map((gap, index) => {
-                                    const severity = String(gap.severity || 'medium').toLowerCase()
-                                    const severityClass = severity === 'high' ? styles.chipHigh : severity === 'low' ? styles.chipLow : styles.chipMedium
-                                    return (
-                                        <span key={index} className={`${styles.skillChip} ${severityClass}`}>
-                                            {gap.skill}
-                                        </span>
-                                    )
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <nav className={styles.reportTabs} aria-label="Report sections" role="tablist">
-                    {NAV_ITEMS.map(item => (
+                    <div className={styles.sidebarBottom}>
                         <button
-                            key={item.id}
                             type="button"
-                            role="tab"
-                            aria-selected={activeTab === item.id}
-                            className={`${styles.tabButton} ${activeTab === item.id ? styles.tabButtonActive : ''}`}
-                            onClick={() => setActiveTab(item.id)}
+                            onClick={handleDownloadResume}
+                            className={styles.downloadButton}
+                            disabled={isDownloadingPdf}
                         >
-                            {item.label}
+                            <span className={styles.downloadIcon}>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z" />
+                                </svg>
+                            </span>
+                            <span>{isDownloadingPdf ? 'Downloading...' : 'Download Resume'}</span>
                         </button>
-                    ))}
-                </nav>
+                    </div>
+                </aside>
 
-                <section className={styles.reportContent} role="tabpanel">
-                    <div className={styles.contentHeading}>
-                        <div>
-                            <span className={styles.contentEyebrow}>Interview preparation</span>
-                            <h2>
-                                {activeTab === 'technical'
-                                    ? 'Technical questions'
-                                    : activeTab === 'behavioral'
-                                        ? 'Behavioral questions'
-                                        : 'Your preparation roadmap'}
-                            </h2>
+                {/* ── Center Content Column ── */}
+                <main className={styles.centerContent}>
+                    {activeNav === 'technical' && (
+                        <>
+                            <div className={styles.headerRow}>
+                                <h1 className={styles.headerTitle}>Technical Questions</h1>
+                                <span className={styles.countBadge}>
+                                    {report.technicalQuestions?.length || 0} questions
+                                </span>
+                            </div>
+                            <div className={styles.dividerLine} />
+                            <div className={styles.questionList}>
+                                {report.technicalQuestions && report.technicalQuestions.length > 0 ? (
+                                    report.technicalQuestions.map((q, idx) => (
+                                        <QuestionCard key={idx} item={q} index={idx} />
+                                    ))
+                                ) : (
+                                    <p style={{ color: '#7e8b9f', fontSize: '14px' }}>No technical questions available.</p>
+                                )}
+                            </div>
+                        </>
+                    )}
+
+                    {activeNav === 'behavioral' && (
+                        <>
+                            <div className={styles.headerRow}>
+                                <h1 className={styles.headerTitle}>Behavioral Questions</h1>
+                                <span className={styles.countBadge}>
+                                    {report.behavioralQuestions?.length || 0} questions
+                                </span>
+                            </div>
+                            <div className={styles.dividerLine} />
+                            <div className={styles.questionList}>
+                                {report.behavioralQuestions && report.behavioralQuestions.length > 0 ? (
+                                    report.behavioralQuestions.map((q, idx) => (
+                                        <QuestionCard key={idx} item={q} index={idx} />
+                                    ))
+                                ) : (
+                                    <p style={{ color: '#7e8b9f', fontSize: '14px' }}>No behavioral questions available.</p>
+                                )}
+                            </div>
+                        </>
+                    )}
+
+                    {activeNav === 'roadmap' && (
+                        <>
+                            <div className={styles.headerRow}>
+                                <h1 className={styles.headerTitle}>Preparation Road Map</h1>
+                                <span className={styles.countBadge}>
+                                    {report.preparationPlan?.length || 0}-day plan
+                                </span>
+                            </div>
+                            <div className={styles.dividerLine} />
+                            <div className={styles.roadmapList}>
+                                {report.preparationPlan && report.preparationPlan.length > 0 ? (
+                                    report.preparationPlan.map((day) => (
+                                        <RoadMapCard key={day.day} day={day} />
+                                    ))
+                                ) : (
+                                    <p style={{ color: '#7e8b9f', fontSize: '14px' }}>No preparation roadmap available.</p>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </main>
+
+                {/* ── Right Sidebar (Match Score + Skill Gaps) ── */}
+                <aside className={styles.rightSidebar}>
+                    {/* Match Score */}
+                    <div className={styles.rightPanelSection}>
+                        <p className={styles.panelHeading}>MATCH SCORE</p>
+                        <div className={styles.scoreWrapper}>
+                            <div className={`${styles.scoreCircle} ${scoreRingClass}`}>
+                                <span className={styles.scoreNumber}>{matchScore}</span>
+                                <span className={styles.scorePercent}>%</span>
+                            </div>
+                            <p className={`${styles.scoreSubtitle} ${scoreTextColorClass}`}>
+                                {scoreSubtitleText}
+                            </p>
                         </div>
-                        <span className={styles.itemCount}>
-                            {activeTab === 'roadmap'
-                                ? `${activeCount} days`
-                                : `${activeCount} questions`}
-                        </span>
                     </div>
 
-                    {activeTab === 'technical' && (
-                        <div className={styles.questionList}>
-                            {technicalQuestions.length > 0
-                                ? technicalQuestions.map((question, index) => (
-                                    <QuestionCard key={question._id || index} item={question} index={index} />
-                                ))
-                                : <p className={styles.emptyState}>No technical questions are available in this report.</p>}
-                        </div>
-                    )}
+                    <div className={styles.rightDivider} />
 
-                    {activeTab === 'behavioral' && (
-                        <div className={styles.questionList}>
-                            {behavioralQuestions.length > 0
-                                ? behavioralQuestions.map((question, index) => (
-                                    <QuestionCard key={question._id || index} item={question} index={index} />
-                                ))
-                                : <p className={styles.emptyState}>No behavioral questions are available in this report.</p>}
-                        </div>
-                    )}
+                    {/* Skill Gaps */}
+                    <div className={styles.rightPanelSection}>
+                        <p className={styles.panelHeading}>SKILL GAPS</p>
+                        <div className={styles.gapsList}>
+                            {report.skillGaps && report.skillGaps.length > 0 ? (
+                                report.skillGaps.map((gap, idx) => {
+                                    const severityClass =
+                                        gap.severity === 'high' ? styles.gapHigh :
+                                            gap.severity === 'medium' ? styles.gapMedium : styles.gapLow
 
-                    {activeTab === 'roadmap' && (
-                        <div className={styles.roadmapList}>
-                            {preparationPlan.length > 0
-                                ? preparationPlan.map((day, index) => (
-                                    <RoadMapDay key={day.day || index} day={day} />
-                                ))
-                                : <p className={styles.emptyState}>No preparation roadmap is available in this report.</p>}
+                                    return (
+                                        <div key={idx} className={`${styles.gapCard} ${severityClass}`}>
+                                            {gap.skill}
+                                        </div>
+                                    )
+                                })
+                            ) : (
+                                <p style={{ color: '#7e8b9f', fontSize: '12px' }}>No skill gaps identified.</p>
+                            )}
                         </div>
-                    )}
-                </section>
+                    </div>
+                </aside>
             </div>
-        </main>
+        </div>
     )
 }
 
