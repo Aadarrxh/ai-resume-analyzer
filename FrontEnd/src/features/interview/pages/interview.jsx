@@ -165,7 +165,7 @@ const Interview = () => {
                 <aside className={styles.leftSidebar}>
                     <div className={styles.sidebarTop}>
                         <p className={styles.sectionLabel}>Sections</p>
-                        <nav className={styles.navList}>
+                        <div className={styles.navList} role="navigation" aria-label="Sections">
                             {NAV_ITEMS.map(item => (
                                 <button
                                     key={item.id}
@@ -177,7 +177,7 @@ const Interview = () => {
                                     <span>{item.label}</span>
                                 </button>
                             ))}
-                        </nav>
+                        </div>
                     </div>
 
                     <div className={styles.sidebarBottom}>
