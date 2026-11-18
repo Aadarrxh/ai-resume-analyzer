@@ -17,6 +17,10 @@ export function useLenis({
   const location = useLocation();
 
   useEffect(() => {
+    // The interview report uses native document scrolling. Avoid layering
+    // Lenis over its expandable content, which can create competing scroll behavior.
+    if (location.pathname.startsWith('/interview')) return;
+
     // Create Lenis instance
     const lenis = new Lenis({
       duration,

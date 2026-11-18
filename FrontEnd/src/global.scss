@@ -210,13 +210,16 @@ body:has(.interview-page),
         box-shadow: 2px 2px 0 var(--black);
     }
 }
-
 .red-border{
   border:1px solid var(--red);
 }
 
-/* Preserve sticky positioning for the interview section sidebar.
-   Unlike overflow-x: hidden, clip does not create a vertical scroll container. */
+/* The report page uses the browser's single document scrollbar.
+   clip prevents overflow-x from turning ancestors into vertical scroll containers. */
+html:has([class*="interviewPage"]),
+body:has([class*="interviewPage"]),
+#root:has([class*="interviewPage"]),
+/* Preserve sticky positioning for the interview section sidebar */
 html:has([class*="sectionSidebar"]),
 body:has([class*="sectionSidebar"]),
 #root:has([class*="sectionSidebar"]) {
